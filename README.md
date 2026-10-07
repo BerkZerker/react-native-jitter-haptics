@@ -1,12 +1,12 @@
-# react-native-feelback
+# react-native-jitter-haptics
 
 Unified semantic haptics for React Native — one API, best-in-class feedback on both iOS and Android.
 
-Unlike other haptic libraries that treat Android as a second-class citizen, `react-native-feelback` maps each semantic haptic type to the **best available native API** on each platform, with graceful degradation on older devices.
+Unlike other haptic libraries that treat Android as a second-class citizen, `react-native-jitter-haptics` maps each semantic haptic type to the **best available native API** on each platform, with graceful degradation on older devices.
 
 ## What makes this different?
 
-| Feature | expo-haptics | react-native-haptic-feedback | **feelback** |
+| Feature | expo-haptics | react-native-haptic-feedback | **jitter-haptics** |
 |---------|-------------|----------------------------|-----------------|
 | Unified cross-platform API | Separate Android method | iOS-focused mapping | Single API, best per-platform |
 | Modern Android (API 30+) | Via separate method | Via bridge | Native Turbo Module |
@@ -29,9 +29,9 @@ Unlike other haptic libraries that treat Android as a second-class citizen, `rea
 ## Installation
 
 ```sh
-npm install react-native-feelback
+npm install react-native-jitter-haptics
 # or
-yarn add react-native-feelback
+yarn add react-native-jitter-haptics
 ```
 
 For iOS, run pod install:
@@ -45,7 +45,7 @@ cd ios && pod install
 ## Usage
 
 ```tsx
-import haptics from 'react-native-feelback';
+import haptics from 'react-native-jitter-haptics';
 
 // Semantic methods
 haptics.tap();        // Button press
@@ -72,7 +72,7 @@ if (haptics.isSupported()) {
 ### Named imports
 
 ```tsx
-import { tap, success, setEnabled } from 'react-native-feelback';
+import { tap, success, setEnabled } from 'react-native-jitter-haptics';
 
 tap();
 success();
@@ -82,7 +82,7 @@ setEnabled(false);
 ### With settings integration
 
 ```tsx
-import haptics from 'react-native-feelback';
+import haptics from 'react-native-jitter-haptics';
 import { useEffect } from 'react';
 
 function useHapticSettings(enabled: boolean) {

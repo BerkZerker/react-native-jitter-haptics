@@ -1,4 +1,4 @@
-import Feelback from './NativeFeelback';
+import JitterHaptics from './NativeJitterHaptics';
 
 export type HapticType =
   | 'tap'
@@ -17,7 +17,7 @@ let _enabled = true;
  */
 export function trigger(type: HapticType): void {
   if (!_enabled) return;
-  Feelback.trigger(type);
+  JitterHaptics.trigger(type);
 }
 
 /** Tap feedback — use for button presses and confirmable actions. */
@@ -57,7 +57,7 @@ export function error(): void {
 
 /** Check if the device supports haptic feedback. */
 export function isSupported(): boolean {
-  return Feelback.isSupported();
+  return JitterHaptics.isSupported();
 }
 
 /** Enable or disable all haptic feedback globally. */

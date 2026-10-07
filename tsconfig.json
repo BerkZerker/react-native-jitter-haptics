@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-feelback": ["./src/index"]
+      "react-native-jitter-haptics": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

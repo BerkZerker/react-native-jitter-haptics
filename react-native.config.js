@@ -2,7 +2,7 @@ module.exports = {
   dependency: {
     platforms: {
       android: {
-        packageImportPath: 'import com.feelback.FeelbackPackage;',
+        packageImportPath: 'import com.jitterhaptics.JitterHapticsPackage;',
       },
     },
   },

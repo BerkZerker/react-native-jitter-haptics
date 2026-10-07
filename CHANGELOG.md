@@ -16,4 +16,4 @@ All notable changes to this project will be documented in this file.
 - React Native New Architecture support (Turbo Modules)
 - Example app with all haptic types
 
-[0.1.0]: https://github.com/BerkZerker/react-native-feelback/releases/tag/v0.1.0
+[0.1.0]: https://github.com/BerkZerker/react-native-jitter-haptics/releases/tag/v0.1.0

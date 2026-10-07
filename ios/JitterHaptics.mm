@@ -1,8 +1,8 @@
-#import "Feelback.h"
+#import "JitterHaptics.h"
 #import <UIKit/UIKit.h>
 #import <CoreHaptics/CoreHaptics.h>
 
-@implementation Feelback
+@implementation JitterHaptics
 
 - (void)trigger:(NSString *)type {
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -50,12 +50,12 @@
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
-    return std::make_shared<facebook::react::NativeFeelbackSpecJSI>(params);
+    return std::make_shared<facebook::react::NativeJitterHapticsSpecJSI>(params);
 }
 
 + (NSString *)moduleName
 {
-  return @"Feelback";
+  return @"JitterHaptics";
 }
 
 @end

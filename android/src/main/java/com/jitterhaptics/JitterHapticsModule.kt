@@ -1,11 +1,11 @@
-package com.feelback
+package com.jitterhaptics
 
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import com.facebook.react.bridge.ReactApplicationContext
 
-class FeelbackModule(reactContext: ReactApplicationContext) :
-  NativeFeelbackSpec(reactContext) {
+class JitterHapticsModule(reactContext: ReactApplicationContext) :
+  NativeJitterHapticsSpec(reactContext) {
 
   override fun trigger(type: String) {
     val activity = currentActivity ?: return
@@ -64,6 +64,6 @@ class FeelbackModule(reactContext: ReactApplicationContext) :
   }
 
   companion object {
-    const val NAME = NativeFeelbackSpec.NAME
+    const val NAME = NativeJitterHapticsSpec.NAME
   }
 }

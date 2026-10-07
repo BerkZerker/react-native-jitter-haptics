@@ -13,7 +13,7 @@ import haptics, {
   setEnabled,
   isEnabled,
   type HapticType,
-} from 'react-native-feelback';
+} from 'react-native-jitter-haptics';
 
 const HAPTIC_TYPES: { type: HapticType; label: string; description: string }[] =
   [
@@ -62,7 +62,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Feelback</Text>
+        <Text style={styles.title}>JitterHaptics</Text>
         <Text style={styles.subtitle}>
           Haptics supported: {supported ? 'Yes' : 'No'}
         </Text>
