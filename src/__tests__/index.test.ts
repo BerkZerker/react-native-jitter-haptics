@@ -1,5 +1,6 @@
 import haptics, {
   tap,
+  light,
   selection,
   soft,
   heavy,
@@ -7,6 +8,7 @@ import haptics, {
   warning,
   error,
   trigger,
+  prepare,
   isSupported,
   setEnabled,
   isEnabled,
@@ -14,12 +16,14 @@ import haptics, {
 
 // Mock the native module
 const mockTrigger = jest.fn();
+const mockPrepare = jest.fn();
 const mockIsSupported = jest.fn(() => true);
 
-jest.mock('../NativeJitterHaptics', () => ({
+jest.mock('../module', () => ({
   __esModule: true,
   default: {
     trigger: (...args: unknown[]) => mockTrigger(...args),
+    prepare: (...args: unknown[]) => mockPrepare(...args),
     isSupported: () => mockIsSupported(),
   },
 }));
@@ -45,6 +49,7 @@ describe('trigger()', () => {
 describe('semantic methods', () => {
   const methods = [
     { fn: tap, type: 'tap' },
+    { fn: light, type: 'light' },
     { fn: selection, type: 'selection' },
     { fn: soft, type: 'soft' },
     { fn: heavy, type: 'heavy' },
@@ -62,6 +67,19 @@ describe('semantic methods', () => {
     setEnabled(false);
     fn();
     expect(mockTrigger).not.toHaveBeenCalled();
+  });
+});
+
+describe('prepare()', () => {
+  it('calls native prepare with the type', () => {
+    prepare('selection');
+    expect(mockPrepare).toHaveBeenCalledWith('selection');
+  });
+
+  it('does not call native when disabled', () => {
+    setEnabled(false);
+    prepare('selection');
+    expect(mockPrepare).not.toHaveBeenCalled();
   });
 });
 
@@ -102,6 +120,7 @@ describe('setEnabled / isEnabled', () => {
 describe('default export', () => {
   it('exposes all methods', () => {
     expect(haptics.tap).toBe(tap);
+    expect(haptics.light).toBe(light);
     expect(haptics.selection).toBe(selection);
     expect(haptics.soft).toBe(soft);
     expect(haptics.heavy).toBe(heavy);
@@ -109,6 +128,7 @@ describe('default export', () => {
     expect(haptics.warning).toBe(warning);
     expect(haptics.error).toBe(error);
     expect(haptics.trigger).toBe(trigger);
+    expect(haptics.prepare).toBe(prepare);
     expect(haptics.isSupported).toBe(isSupported);
     expect(haptics.setEnabled).toBe(setEnabled);
     expect(haptics.isEnabled).toBe(isEnabled);

@@ -1,50 +1,91 @@
 #import "JitterHaptics.h"
 #import <UIKit/UIKit.h>
 #import <CoreHaptics/CoreHaptics.h>
+#import <TargetConditionals.h>
 
-@implementation JitterHaptics
+// Generators are created lazily and reused: allocating one per call wastes
+// work, and a retained generator is what lets prepare() actually cut latency.
+// All generator access happens on the main queue.
+@implementation JitterHaptics {
+  NSMutableDictionary<NSString *, UIFeedbackGenerator *> *_generators;
+}
+
+- (UIFeedbackGenerator *)generatorForType:(NSString *)type {
+  if (!_generators) {
+    _generators = [NSMutableDictionary new];
+  }
+
+  UIFeedbackGenerator *generator = _generators[type];
+  if (generator) {
+    return generator;
+  }
+
+  if ([type isEqualToString:@"selection"]) {
+    generator = [UISelectionFeedbackGenerator new];
+  } else if ([type isEqualToString:@"success"] ||
+             [type isEqualToString:@"warning"] ||
+             [type isEqualToString:@"error"]) {
+    // One notification generator serves all three notification types.
+    generator = _generators[@"notification"];
+    if (!generator) {
+      generator = [UINotificationFeedbackGenerator new];
+      _generators[@"notification"] = generator;
+    }
+  } else {
+    UIImpactFeedbackStyle style = UIImpactFeedbackStyleMedium;
+    if ([type isEqualToString:@"tap"]) {
+      style = UIImpactFeedbackStyleRigid;
+    } else if ([type isEqualToString:@"light"]) {
+      style = UIImpactFeedbackStyleLight;
+    } else if ([type isEqualToString:@"soft"]) {
+      style = UIImpactFeedbackStyleSoft;
+    } else if ([type isEqualToString:@"heavy"]) {
+      style = UIImpactFeedbackStyleHeavy;
+    }
+    generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:style];
+  }
+
+  _generators[type] = generator;
+  return generator;
+}
 
 - (void)trigger:(NSString *)type {
+#if !TARGET_OS_SIMULATOR
   dispatch_async(dispatch_get_main_queue(), ^{
-    if ([type isEqualToString:@"tap"]) {
-      UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleRigid];
-      [generator prepare];
-      [generator impactOccurred];
-    } else if ([type isEqualToString:@"selection"]) {
-      UISelectionFeedbackGenerator *generator = [[UISelectionFeedbackGenerator alloc] init];
-      [generator prepare];
-      [generator selectionChanged];
-    } else if ([type isEqualToString:@"soft"]) {
-      UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleSoft];
-      [generator prepare];
-      [generator impactOccurred];
-    } else if ([type isEqualToString:@"heavy"]) {
-      UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
-      [generator prepare];
-      [generator impactOccurred];
-    } else if ([type isEqualToString:@"success"]) {
-      UINotificationFeedbackGenerator *generator = [[UINotificationFeedbackGenerator alloc] init];
-      [generator prepare];
-      [generator notificationOccurred:UINotificationFeedbackTypeSuccess];
-    } else if ([type isEqualToString:@"warning"]) {
-      UINotificationFeedbackGenerator *generator = [[UINotificationFeedbackGenerator alloc] init];
-      [generator prepare];
-      [generator notificationOccurred:UINotificationFeedbackTypeWarning];
-    } else if ([type isEqualToString:@"error"]) {
-      UINotificationFeedbackGenerator *generator = [[UINotificationFeedbackGenerator alloc] init];
-      [generator prepare];
-      [generator notificationOccurred:UINotificationFeedbackTypeError];
+    UIFeedbackGenerator *generator = [self generatorForType:type];
+
+    if ([generator isKindOfClass:[UISelectionFeedbackGenerator class]]) {
+      [(UISelectionFeedbackGenerator *)generator selectionChanged];
+    } else if ([generator isKindOfClass:[UINotificationFeedbackGenerator class]]) {
+      UINotificationFeedbackType feedbackType = UINotificationFeedbackTypeSuccess;
+      if ([type isEqualToString:@"warning"]) {
+        feedbackType = UINotificationFeedbackTypeWarning;
+      } else if ([type isEqualToString:@"error"]) {
+        feedbackType = UINotificationFeedbackTypeError;
+      }
+      [(UINotificationFeedbackGenerator *)generator notificationOccurred:feedbackType];
     } else {
-      // Fallback: treat unknown types as a tap
-      UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
-      [generator prepare];
-      [generator impactOccurred];
+      [(UIImpactFeedbackGenerator *)generator impactOccurred];
     }
   });
+#endif
+}
+
+- (void)prepare:(NSString *)type {
+#if !TARGET_OS_SIMULATOR
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[self generatorForType:type] prepare];
+  });
+#endif
 }
 
 - (NSNumber *)isSupported {
-  return @([CHHapticEngine capabilitiesForHardware].supportsHaptics);
+  static BOOL supported;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    supported = [CHHapticEngine capabilitiesForHardware].supportsHaptics;
+  });
+  return @(supported);
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

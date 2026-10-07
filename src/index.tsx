@@ -1,7 +1,8 @@
-import JitterHaptics from './NativeJitterHaptics';
+import JitterHaptics from './module';
 
 export type HapticType =
   | 'tap'
+  | 'light'
   | 'selection'
   | 'soft'
   | 'heavy'
@@ -23,6 +24,11 @@ export function trigger(type: HapticType): void {
 /** Tap feedback — use for button presses and confirmable actions. */
 export function tap(): void {
   trigger('tap');
+}
+
+/** Light impact — use for low-stakes taps and secondary controls. */
+export function light(): void {
+  trigger('light');
 }
 
 /** Selection feedback — use for picker changes, tab switches, toggles. */
@@ -55,7 +61,22 @@ export function error(): void {
   trigger('error');
 }
 
-/** Check if the device supports haptic feedback. */
+/**
+ * Warm up the haptic hardware ahead of an expected `trigger(type)` to reduce
+ * latency, e.g. when a gesture begins. The warm-up lasts a few seconds.
+ * iOS only; a no-op on Android and web.
+ */
+export function prepare(type: HapticType): void {
+  if (!_enabled) return;
+  JitterHaptics.prepare(type);
+}
+
+/**
+ * Check if the device has built-in haptic hardware (a Taptic Engine on iOS, a
+ * vibrator on Android). Informational only: triggers are always safe to call,
+ * and iPads report `false` even though Apple Pencil Pro and trackpads can play
+ * feedback.
+ */
 export function isSupported(): boolean {
   return JitterHaptics.isSupported();
 }
@@ -72,7 +93,9 @@ export function isEnabled(): boolean {
 
 const haptics = {
   trigger,
+  prepare,
   tap,
+  light,
   selection,
   soft,
   heavy,

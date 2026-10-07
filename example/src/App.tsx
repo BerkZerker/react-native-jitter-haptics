@@ -23,6 +23,11 @@ const HAPTIC_TYPES: { type: HapticType; label: string; description: string }[] =
       description: 'Button presses, confirmable actions',
     },
     {
+      type: 'light',
+      label: 'Light',
+      description: 'Low-stakes taps, secondary controls',
+    },
+    {
       type: 'selection',
       label: 'Selection',
       description: 'Picker changes, tab switches',

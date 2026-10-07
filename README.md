@@ -10,21 +10,27 @@ Unlike other haptic libraries that treat Android as a second-class citizen, `rea
 |---------|-------------|----------------------------|-----------------|
 | Unified cross-platform API | Separate Android method | iOS-focused mapping | Single API, best per-platform |
 | Modern Android (API 30+) | Via separate method | Via bridge | Native Turbo Module |
+| Web | No-op | No | No-op |
 | New Architecture | Expo Modules only | No | Turbo Module |
 | No Expo dependency | No | Yes | Yes |
 | Semantic types | Partial | Platform-specific | Intent-based |
 
 ## Platform mapping
 
-| Semantic type | iOS | Android (API 30+) | Android (older) |
-|--------------|-----|-------------------|-----------------|
-| `tap` | Impact (Rigid) | `CONTEXT_CLICK` | `VIRTUAL_KEY` |
-| `selection` | Selection | `VIRTUAL_KEY` | `VIRTUAL_KEY` |
-| `soft` | Impact (Soft) | `CLOCK_TICK` | `KEYBOARD_TAP` |
-| `heavy` | Impact (Heavy) | `LONG_PRESS` | `LONG_PRESS` |
-| `success` | Notification (Success) | `CONFIRM` | `CLOCK_TICK` |
-| `warning` | Notification (Warning) | `GESTURE_END` | `LONG_PRESS` |
-| `error` | Notification (Error) | `REJECT` | `LONG_PRESS` |
+| Semantic type | iOS | Android 14+ (API 34) | Android 11–13 (API 30–33) | Android 7–10 (API 24–29) |
+|--------------|-----|----------------------|---------------------------|--------------------------|
+| `tap` | Impact (Rigid) | `VIRTUAL_KEY` | `VIRTUAL_KEY` | `VIRTUAL_KEY` |
+| `light` | Impact (Light) | `CONTEXT_CLICK` | `CONTEXT_CLICK` | `CONTEXT_CLICK` |
+| `selection` | Selection | `SEGMENT_TICK` | `CONTEXT_CLICK` | `CONTEXT_CLICK` |
+| `soft` | Impact (Soft) | `LOW_TICK` primitive* | `LOW_TICK` primitive* | `CONTEXT_CLICK` |
+| `heavy` | Impact (Heavy) | `LONG_PRESS` | `LONG_PRESS` | `LONG_PRESS` |
+| `success` | Notification (Success) | `CONFIRM` | `CONFIRM` | `VIRTUAL_KEY` |
+| `warning` | Notification (Warning) | `TICK` → `CLICK` primitives* | `TICK` → `CLICK` primitives* | `LONG_PRESS` |
+| `error` | Notification (Error) | `REJECT` | `REJECT` | `LONG_PRESS` |
+
+\* Composition primitives play on Android 12+ (API 31) when the device's actuator supports them, and follow the system touch-feedback setting. Otherwise they fall back to `CONTEXT_CLICK` (`soft`) or `LONG_PRESS` (`warning`).
+
+Everything else uses `View.performHapticFeedback`, so it respects the user's touch-feedback setting and uses each manufacturer's tuned effects. On web every call is a silent no-op, and on the iOS Simulator calls are skipped.
 
 ## Installation
 
@@ -49,6 +55,7 @@ import haptics from 'react-native-jitter-haptics';
 
 // Semantic methods
 haptics.tap();        // Button press
+haptics.light();      // Low-stakes tap
 haptics.selection();  // Picker/tab change
 haptics.soft();       // Subtle feedback
 haptics.heavy();      // Significant action
@@ -63,10 +70,11 @@ haptics.trigger('success');
 haptics.setEnabled(false);
 haptics.setEnabled(true);
 
-// Check device support
-if (haptics.isSupported()) {
-  haptics.tap();
-}
+// Warm up the Taptic Engine before an expected haptic (iOS; no-op elsewhere)
+haptics.prepare('selection');
+
+// Check for built-in haptic hardware (informational — triggers are always safe)
+haptics.isSupported();
 ```
 
 ### Named imports
@@ -97,6 +105,7 @@ function useHapticSettings(enabled: boolean) {
 | Method | Description |
 |--------|-------------|
 | `tap()` | Button presses, confirmable actions |
+| `light()` | Low-stakes taps, secondary controls |
 | `selection()` | Picker changes, tab switches, toggles |
 | `soft()` | Scroll snaps, subtle value changes |
 | `heavy()` | Drop actions, completing significant gestures |
@@ -104,14 +113,15 @@ function useHapticSettings(enabled: boolean) {
 | `warning()` | Cautionary feedback (nearing limits) |
 | `error()` | Failures and invalid actions |
 | `trigger(type)` | Trigger by type string |
-| `isSupported()` | Check if device supports haptics |
+| `prepare(type)` | Warm up the Taptic Engine ahead of an expected haptic (iOS only) |
+| `isSupported()` | Whether the device has built-in haptic hardware. iPads report `false` even though Apple Pencil Pro and trackpads can play feedback, so don't use it to gate triggers |
 | `setEnabled(bool)` | Global enable/disable |
 | `isEnabled()` | Check if haptics are enabled |
 
 ## Requirements
 
 - React Native 0.76+ (New Architecture / Turbo Modules)
-- iOS 13+
+- iOS 15.1+
 - Android API 24+
 
 ## Contributing
